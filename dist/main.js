@@ -1,0 +1,1 @@
+(()=>{"use strict";const e=document.getElementById("board");({createBoard(){for(let t=0;t<8;t++)for(let a=0;a<8;a++){const d=document.createElement("div");d.classList.add("square",(t+a)%2==0?"light":"dark"),d.dataset.row=t,d.dataset.col=a,e.appendChild(d)}}}).createBoard()})();

@@ -1,0 +1,17 @@
+{
+  "name": "pathfinder",
+  "version": "1.0.0",
+  "main": "webpack.config.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack"
+  },
+  "keywords": [],
+  "author": "Jimmy Bowcott",
+  "license": "ISC",
+  "description": "Chess pathfinder tool.",
+  "devDependencies": {
+    "webpack": "^5.92.1",
+    "webpack-cli": "^5.1.4"
+  }
+}
