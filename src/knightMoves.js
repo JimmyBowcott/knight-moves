@@ -28,21 +28,20 @@ class Square {
 
 // BF Traverse the tree, getting each child as well as the path to that child
 // If end square is reached, return the path
-function knightTravail(start, end) {
+function knightMoves(start, end) {
 
     var q = [new Square(start)];
     var n = q.shift();
 
     while(n.position[0] !== end[0] || n.position[1] !== end[1]) {
     
-        moves = n.getMoves();
+        let moves = n.getMoves();
         for (var i = 0; i < moves.length; i++) {
             q.push(new Square(moves[i], n.path.concat([moves[i]])));
         }
         n = q.shift();
       }
-    
     return n.path;
 }
 
-console.log(knightTravail([1,0],[6,2])); 
+export { knightMoves }

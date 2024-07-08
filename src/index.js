@@ -1,34 +1,13 @@
 import { dom } from './dom.js';
-
-const imgSrc = '../../media/knight.png';
+import { knightMoves } from './knightMoves.js';
 
 dom.createBoard();
+dom.initializePieces();
 
-function onDragStart(event) {
-    console.log('drag start');
-    event.dataTransfer.setData('text/plain', event.target.src);
-    setTimeout(() => {
-        event.target.style.visibility = 'hidden';
-    }, 0);
-}
+// Add an event listener for the button
+let startBtn = document.getElementById('start')
 
-function onDragOver(event) {
-    console.log('over');
-    event.preventDefault();
-}
-
-function onDrop(event) {
-    console.log('dropped');
-    event.preventDefault();
-    const imgSrc = event.dataTransfer.getData('text/plain');
-    const img = document.createElement('img');
-    img.src = imgSrc;
-    img.alt = 'Knight';
-    img.draggable = true;
-    img.addEventListener('dragstart', onDragStart);
-    
-    // Clear the current square and append the new image
-    const square = event.target;
-    square.innerHTML = '';
-    square.appendChild(img);
-}
+startBtn.addEventListener('click', () => {
+    const path = knightMoves(dom.start, dom.target);
+    dom.moveKnight(path);
+});
