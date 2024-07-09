@@ -4,13 +4,15 @@
   "main": "webpack.config.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "webpack"
+    "build": "webpack --config webpack.config.js",
+    "deploy": "gh-pages -d dist"
   },
   "keywords": [],
   "author": "Jimmy Bowcott",
   "license": "ISC",
   "description": "Chess pathfinder tool.",
   "devDependencies": {
+    "gh-pages": "^6.1.1",
     "webpack": "^5.92.1",
     "webpack-cli": "^5.1.4"
   }
