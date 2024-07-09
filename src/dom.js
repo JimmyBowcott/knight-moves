@@ -28,7 +28,7 @@ const dom = {
     createPiece(piece) {
         const p = document.createElement('img');
         p.id= piece;
-        p.src = '../media/' + piece + '.png';
+        p.src = './media/' + piece + '.png';
         p.alt = piece;
         p.draggable = false;
         p.classList.add('piece');
