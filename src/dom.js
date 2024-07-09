@@ -6,6 +6,12 @@ const dom = {
 
     target: null, // Location of the pawn
 
+    draggedPiece: null, // For dragging
+
+    lastSquare: null,
+
+    pieces: [],
+
     createBoard() {
         for (let row = 0; row < 8; row++) {
             for (let col = 0; col < 8; col++) {
@@ -14,96 +20,139 @@ const dom = {
                 square.dataset.row = row;
                 square.dataset.col = col;
                 board.appendChild(square);
-
-                // Add event listeners
-                square.addEventListener('dragover', dom.onDragOver);
-                square.addEventListener('drop', dom.onDrop);
             }
         }
+        dom.lastSquare = dom.getRandomSquare();
     },
 
-    createPawn() {
-        const pawn = document.createElement('img');
-        pawn.id='pawn';
-        pawn.src = '../media/pawn.png';
-        pawn.alt = 'Pawn';
-        pawn.draggable = true;
-        pawn.classList.add('piece');
-        pawn.addEventListener('dragstart', dom.onDragStart);
-        return pawn
-    },
-
-    createKnight() {
-        const knight = document.createElement('img');
-        knight.id='knight';
-        knight.src = '../media/knight.png';
-        knight.alt = 'Knight';
-        knight.draggable = true;
-        knight.classList.add('piece');
-        knight.addEventListener('dragstart', dom.onDragStart);
-        return knight
+    createPiece(piece) {
+        const p = document.createElement('img');
+        p.id= piece;
+        p.src = '../media/' + piece + '.png';
+        p.alt = piece;
+        p.draggable = false;
+        p.classList.add('piece');
+        p.addEventListener('mousedown', dom.startDrag);
+        p.addEventListener('dragstart', event => event.preventDefault()); // Prevent default drag behavior
+        dom.pieces.push(p);
+        return p
     },
 
     getRandomSquare() {
         const squares = document.querySelectorAll('.square');
-        const randomIndex = Math.floor(Math.random() * squares.length);
+        let randomIndex = Math.floor(Math.random() * squares.length);
+        while (squares[randomIndex].children.length === 1) {
+            randomIndex = Math.floor(Math.random() * squares.length);
+        }
         return squares[randomIndex];
     },
 
     initializePieces() {
-        // Get random squares
-        const pawnSquare = dom.getRandomSquare();
-        const knightSquare = dom.getRandomSquare();
+        // Create pieces
+        dom.createPiece('pawn');
+        dom.createPiece('knight');
 
-        // Avoid clashes with squares
-        while (knightSquare === pawnSquare) {
-            knightSquare = dom.getRandomSquare();
-        }
+        dom.pieces.forEach(piece => {
+            const square = dom.getRandomSquare();
+            square.appendChild(piece);
+            dom.updatePosition(piece.id, square)
+        })
+    },
 
-        // Get pieces
-        const pawn = dom.createPawn();
-        const knight = dom.createKnight();
+    startDrag(event) {
+        dom.draggedPiece = event.target;
+
+        // Remove transition
+        dom.draggedPiece.style.transition = 'none';
 
         // Add event listeners
-        pawn.addEventListener('dragstart', dom.onDragStart);
-        knight.addEventListener('dragstart', dom.onDragStart);
-
-        // Add pieces to squares
-        pawnSquare.appendChild(pawn);
-        knightSquare.appendChild(knight);
-
-        // Set start and target
-        dom.updatePosition('knight', knightSquare);
-        dom.updatePosition('pawn', pawnSquare);
+        document.addEventListener('mousemove', dom.dragPiece);
+        document.addEventListener('mouseup', dom.dropPiece);
+        document.addEventListener('mouseleave', dom.cancelDrag);
     },
 
-    onDragStart(event) {
-        // Make the pieces draggable from one square to another
-        event.dataTransfer.setData('text/plain', event.target.id);
-        setTimeout(() => {
-            //event.target.style.visibility = 'hidden';
-        }, 0);
+    dragPiece(event) {
+        if (!dom.draggedPiece) return;
+        // Update piece appearance
+        dom.draggedPiece.style.transform = `translate(${event.pageX-dom.draggedPiece.x-25}px,${event.pageY-dom.draggedPiece.y-80}px)`
+        const targetSquare = dom.getTargetSquare(event);
+        if (targetSquare) {
+            if (targetSquare.classList.contains('light')) {
+                dom.lastSquare.classList.remove('lightdrag');
+                dom.lastSquare.classList.remove('darkdrag');
+                targetSquare.classList.add('lightdrag');
+                dom.lastSquare = targetSquare;
+            } else if (targetSquare.classList.contains('dark')) {
+                dom.lastSquare.classList.remove('lightdrag');
+                dom.lastSquare.classList.remove('darkdrag');
+                targetSquare.classList.add('darkdrag');
+                dom.lastSquare = targetSquare;
+            }
+        }
     },
 
-    onDragOver(event) {
-        event.preventDefault();
+    async dropPiece(event) {
+        if (!dom.draggedPiece) return;
+        document.removeEventListener('mousemove', dom.dragPiece);
+        document.removeEventListener('mouseup', dom.dropPiece);
+        document.removeEventListener('mouseleave', dom.cancelDrag);
+
+        const targetSquare = dom.getTargetSquare(event);
+
+        // Cancel if the piece is outside of the board
+        const board = document.querySelector('.board');
+        if (!targetSquare || !board.contains(targetSquare) || targetSquare.children.length === 1) {
+            dom.cancelDrag();
+            return
+        }
+
+        if (targetSquare) {
+            // Update piece position
+            targetSquare.appendChild(dom.draggedPiece);
+
+            // Add transition back and set position
+            dom.draggedPiece.style.transform = `translate(${event.pageX-dom.draggedPiece.x-25}px,${event.pageY-dom.draggedPiece.y-40}px)`
+            dom.draggedPiece.style.transform = `translate(0,-40px)`;
+            dom.updatePosition(dom.draggedPiece.id, targetSquare);
+            await dom.delay(100); // Delay transition until piece is placed correctly
+            dom.draggedPiece.style.transition =  'transform 0.35s ease-in-out';
+            
+        }
+
+        dom.draggedPiece = null;
+        dom.lastSquare.classList.remove('lightdrag');
+        dom.lastSquare.classList.remove('darkdrag');
     },
-    
-    onDrop(event) {
-        // Drag the piece onto a square and
-        // set a new position for the piece
 
-        const id = event.dataTransfer.getData('text/plain');
-        const piece = document.getElementById(id);
-        event.preventDefault();
+    cancelDrag() {
+        if (!dom.draggedPiece) return;
 
-        // Clear the current square and append image
-        const square = event.target;
-        square.innerHTML = '';
-        square.appendChild(piece);
+        // Reset dragged piece
+        dom.draggedPiece.style.transform = `translate(0,-40px)`;
+        dom.draggedPiece.style.transition =  'transform 0.35s ease-in-out';
+        dom.draggedPiece = null;
 
-        // Update the current positions
-        dom.updatePosition(id, square);
+        // Reset listeners
+        document.removeEventListener('mousemove', dom.dragPiece);
+        document.removeEventListener('mouseup', dom.dropPiece);
+        document.removeEventListener('mouseleave', dom.cancelDrag);
+
+        // Reset last square
+        dom.lastSquare.classList.remove('lightdrag');
+        dom.lastSquare.classList.remove('darkdrag');
+    },
+
+    getTargetSquare(event) {
+        dom.draggedPiece.style.display = 'none';
+        let targetSquare = document.elementFromPoint(event.clientX, event.clientY)
+        if (!targetSquare) {
+            dom.draggedPiece.style.display = ''
+            return;
+        }
+            
+        targetSquare = targetSquare.closest('.square');
+        dom.draggedPiece.style.display = '';
+        return targetSquare
     },
 
     updatePosition(piece, square) {
@@ -121,21 +170,32 @@ const dom = {
     async moveKnight(path) {
         dom.disableClicking(); // Disable start button click
         const knight = document.getElementById('knight');
-        knight.style.borderColor = 'green';
+        let offset = [0,-40]; // Initialise offset
 
         // For every move, animate the knight with a delay
         for (let i = 1; i < path.length; i++) {
-            const offset = dom.getOffset(path[0], path[i]);
-            knight.style.transform = `translate(${offset[0]}px, ${offset[1]-40}px)`;
-            await dom.delay(1000);
+            const newOffset = dom.getOffset(path[i-1], path[i]);
+            offset[0] += newOffset[0] // Add first offset
+            knight.style.transform = `translate(${offset[0]}px, ${offset[1]}px)`;
+            await dom.delay(350);
+            offset[1] += newOffset[1] // Add second offset
+            knight.style.transform = `translate(${offset[0]}px, ${offset[1]}px)`;
+            await dom.delay(250);
+            if (i === path.length - 1) dom.hidePiece('pawn'); // Trigger knight fade-out animation
+            await dom.delay(250);
         }
 
         // Reset the knight
         await dom.delay(2000);
-        dom.resetKnight();
-        await dom.delay(2000);
+        dom.resetPiece('knight');
+        dom.resetPiece('pawn');
+        await dom.delay(1000);
         dom.enableClicking(); // Re-enable start button click
-        knight.style.borderColor = 'red';
+    },
+
+    hidePiece(piece) {
+        piece = document.getElementById(piece)
+        piece.classList.add('taken');
     },
 
     disableClicking() {
@@ -154,9 +214,10 @@ const dom = {
         board.classList.remove('disabled');
     },
 
-    resetKnight() {
-        const knight = document.getElementById('knight');
-        knight.style.transform = 'translate(0px, -40px)';
+    resetPiece(piece) {
+        piece = document.getElementById(piece);
+        piece.classList.remove('taken');
+        piece.style.transform = 'translate(0px, -40px)';
     },
 
     getOffset(start,target) {

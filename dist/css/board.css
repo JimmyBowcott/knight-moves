@@ -1,8 +1,10 @@
 :root {
     --bg: #d1cec6;
     --light: #faf2d9;
-    --dark: #49576d;
-    --darkdark: #3b475a;
+    --dark: #424f63;
+    --darkgrey: #6c798a;
+    --darkdark: #252e3a;
+    --lightgrey: #c7c2b4;
 }
 
 body {
@@ -29,8 +31,23 @@ body {
     justify-content: center;
     align-items: center;
     width: 75vw;
-    height: 90vh;
+    height: 95vh;
     margin: auto;
+}
+
+.letter-container {
+    display:flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--dark);
+}
+
+.board-container {
+    display:flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--dark);
 }
 
 .board {
@@ -43,12 +60,63 @@ body {
     height: 480px;
 }
 
+.numbers {
+    image-rendering: pixelated;
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: space-around;
+    width: 9px;
+    height: 480px;
+    border: 6px solid var(--dark);
+    border-top: 20px solid var(--dark);
+    /*border-top: 22px solid var(--dark);*/
+    background-color: var(--dark);
+}
+
+.numbers img {
+    width: 9px;
+    height: 9px;
+}
+
 .border {
-    border: 20px solid var(--dark);
+    border-top: 20px solid var(--dark);
+    border-right: 20px solid var(--dark);
+}
+
+.letters {
+    image-rendering: pixelated;
+    display: flex;
+    justify-content: space-around;
+    width: 600px;
+    height: 9px;
+    border: 6px solid var(--dark);
+    background-color: var(--dark);
+}
+
+.letters img {
+    width: 9px;
+    height: 9px;
+}
+
+.edge-container {
+    display:flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--darkdark);
 }
 
 .edge {
-    border-bottom: 20px solid var(--darkdark);
+    border-bottom: 15px solid var(--darkdark);
+    content: "";
+    width: 600px;
+}
+
+.title img {
+    image-rendering: pixelated;
+    height: 120px;
+    width: auto;
+    margin-bottom: 4rem;
 }
 
 .square {
@@ -58,9 +126,32 @@ body {
     justify-content: center;
     align-items: center;
 }
-
-.square img {
+.darkdrag {
+    background-color: var(--darkgrey);
+}
+.lightdrag {
+    background-color: var(--lightgrey);
+}
+.lightdrag::before, .lightdrag::after{
+    border-left: 31px solid var(--light);
+    border-right: 32px solid var(--light);
+    border-top: 24px solid var(--light);
+    border-bottom: 24px solid var(--light);
+    content: "";
     position: absolute;
+    pointer-events: none;
+}
+.darkdrag::before, .darkdrag::after{
+    border-left: 31px solid var(--dark);
+    border-right: 32px solid var(--dark);
+    border-top: 24px solid var(--dark);
+    border-bottom: 24px solid var(--dark);
+    content: "";
+    position: absolute;
+    pointer-events: none;
+}
+.piece {
+    position: relative;
     image-rendering: pixelated;
     width: 55px;
     height: auto;
@@ -70,7 +161,12 @@ body {
 }
 
 #knight {
-    transition: transform 1s ease;
+    transition: transform 0.35s ease-in-out;
+    z-index: 2;
+}
+
+#pawn {
+    z-index: 1;
 }
 
 button {
@@ -94,14 +190,31 @@ button:active {
   background-color: var(--darkdark);
 }
 
-@keyframes moveKnightArc {
+@keyframes bubble {
     0% {
-        transform: translate(0, 0);
-    }
-    50% {
-        transform: translate(30px, -30px); /* Adjust to create the arc */
+        transform: scale(0);
     }
     100% {
-        transform: translate(60px, 60px); /* Move to the target */
+        transform: scale(1);
     }
+}
+@keyframes takePiece {
+    0% {
+        opacity: 1;
+        transform: translate(0, -40px) scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: translate(-50px, -60px) scale(0.5);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50px, -60px) scale(0.5);
+    }
+}
+.taken {
+    animation: takePiece 2s forwards;
+}
+.bubble-in{
+    animation: bubble 1s;
 }
